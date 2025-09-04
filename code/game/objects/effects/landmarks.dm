@@ -496,6 +496,17 @@ INITIALIZE_IMMEDIATE(/obj/effect/landmark)
 	delete_after_roundstart = FALSE
 	jobspawn_override = list("Wretch")
 
+/obj/effect/landmark/start/dreamwalker
+	name = "dreamwalker"
+	icon_state = "arrow"
+	jobspawn_override = list("Dreamwalker")
+
+/obj/effect/landmark/start/dreamwalkerlate
+	name = "dreamwalker"
+	icon_state = "arrow"
+	delete_after_roundstart = FALSE
+	jobspawn_override = list("Dreamwalker")
+
 /obj/effect/landmark/start/nukeop_leader
 	name = "nukeop leader"
 	icon = 'icons/effects/landmarks_static.dmi'
