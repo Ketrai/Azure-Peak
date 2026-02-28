@@ -37,15 +37,26 @@
 			var/datum/component/forging/forging_comp = current_workpiece.GetComponent(/datum/component/forging)
 			if(forging_comp?.needed_item && T.hingot && istype(T.hingot, forging_comp.needed_item))
 				var/obj/item/consumed = T.hingot
-				SEND_SIGNAL(current_workpiece, COMSIG_ITEM_ADDED_TO_FORGING, consumed, user)
+
+				// CACHE WHAT WE NEED BEFORE THE ITEM IS DELETED
+				var/added_quality = 0
 				if(istype(consumed, /obj/item/ingot))
 					var/obj/item/ingot/I = consumed
-					forging_comp.material_quality += I.quality
-					previous_material_quality = I.quality
+					added_quality = I.quality
+				// Clean this up here before the item is deleted to avoid hard deletes
+				T.hingot = null 
+				T.hott = null
+				consumed.forceMove(src.loc)
+
+				SEND_SIGNAL(current_workpiece, COMSIG_ITEM_ADDED_TO_FORGING, consumed, user)
+
+				if(added_quality)
+					forging_comp.material_quality += added_quality
+					previous_material_quality = added_quality
 				else
 					forging_comp.material_quality += previous_material_quality
+
 				forging_comp.current_recipe.num_of_materials += 1
-				T.hingot = null
 				T.update_icon()
 				update_icon()
 				return
@@ -291,6 +302,7 @@
 					return TRUE
 
 				// Remove existing forging component and any quenchable components
+				UnregisterSignal(current_workpiece, COMSIG_PARENT_QDELETING)
 				qdel(existing_forging)
 				var/datum/component/anvil_quenchable/existing_quench = current_workpiece.GetComponent(/datum/component/anvil_quenchable)
 				if(existing_quench)
@@ -307,6 +319,7 @@
 			// Add forging component to the workpiece
 			if(!existing_forging || recipe_reset)
 				var/datum/component/forging/forging_comp = current_workpiece.AddComponent(/datum/component/forging, recipe.type)
+				RegisterSignal(current_workpiece, COMSIG_PARENT_QDELETING, .proc/clear_workpiece)
 				if(!forging_comp)
 					return TRUE
 
@@ -378,3 +391,13 @@
 	desc = "Elevating humenity from its primordial stupor since the earliest daes of Psydonia."
 	icon_state = "broanvil"
 	max_integrity = 400
+
+/obj/machinery/anvil/proc/clear_workpiece(datum/source)
+	SIGNAL_HANDLER
+	// Unregister from the specific item that is dying
+	// UnregisterSignal(source, COMSIG_PARENT_QDELETING)
+
+	current_workpiece = null
+	hott = null
+	STOP_PROCESSING(SSmachines, src)
+	update_icon()

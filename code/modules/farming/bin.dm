@@ -171,6 +171,13 @@
 					to_chat(user, span_warning("Need more water to quench in."))
 					return
 
+			// Clear the tongs
+			T.hingot = null
+			T.hott = null
+			T.update_icon()
+
+			ingot.forceMove(null)
+
 			SEND_SIGNAL(ingot, COMSIG_ITEM_QUENCHED, user, src.loc)
 
 			// Play sound and consume water
@@ -185,9 +192,6 @@
 					reagents.remove_reagent(/datum/reagent/water, amount_to_dirty)
 					reagents.add_reagent(/datum/reagent/water/gross, amount_to_dirty)
 
-			// Clear the tongs
-			T.hingot = null
-			T.hott = null
 			T.update_icon()
 			update_icon()
 			return

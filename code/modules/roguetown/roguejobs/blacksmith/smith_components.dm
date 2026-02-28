@@ -5,6 +5,10 @@
 	if(!isitem(parent))
 		return COMPONENT_INCOMPATIBLE
 
+/datum/component/anvil_quenchable/Destroy()
+	associated_ingot = null // Break the hard link, just in case
+	return ..()
+
 /datum/component/forging
 	var/datum/anvil_recipe/current_recipe
 	var/progress = 0
@@ -262,4 +266,11 @@
 			L.picklvl = modifier
 
 	// Clean up the original workpiece
-	qdel(parent)
+	var/obj/item/ouringot = parent
+	ouringot.forceMove(null)
+	var/datum/component/anvil_quenchable/AQ = ouringot.GetComponent(/datum/component/anvil_quenchable)
+	if(AQ)
+		qdel(AQ)
+	parent = null
+	qdel(src)
+	qdel(ouringot)
